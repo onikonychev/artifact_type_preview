@@ -75,19 +75,25 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
           >
             All
           </button>
-          {stats.sortedTypes.map(([type, count]) => (
-            <button
-              key={type}
-              onClick={() => setActiveType(activeType === type ? null : type)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                activeType === type
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-700 text-white hover:bg-gray-900'
-              }`}
-            >
-              {type} <span className="opacity-60">{count}</span>
-            </button>
-          ))}
+          {stats.sortedTypes.map(([type, count]) => {
+            const isJournal = type === 'journal article';
+            const isActive = activeType === type;
+            return (
+              <button
+                key={type}
+                onClick={() => setActiveType(isActive ? null : type)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'bg-gray-900 text-white'
+                    : isJournal
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {type} <span className="opacity-60">{count}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -121,7 +127,7 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
                   className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
                     activeType === row.document_type
                       ? 'bg-gray-900 text-white'
-                      : 'bg-gray-700 text-white hover:bg-gray-900'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
                   {row.document_type}

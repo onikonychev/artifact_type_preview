@@ -49,7 +49,11 @@ export default function Home() {
     acc[t] = (acc[t] ?? 0) + 1;
     return acc;
   }, {});
-  const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+  const sortedTypes = Object.entries(typeCounts).sort(([a], [b]) => {
+    if (a === 'journal article') return -1;
+    if (b === 'journal article') return 1;
+    return typeCounts[b] - typeCounts[a];
+  });
 
   return (
     <main className="p-6 max-w-screen-2xl mx-auto font-sans">
