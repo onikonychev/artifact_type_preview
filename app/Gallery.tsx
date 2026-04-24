@@ -33,16 +33,21 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
     .filter((r) => activeType === null || r.document_type === activeType)
     .filter((r) => csisFilter === null || r.is_csis === csisFilter);
 
+  const total = visible.length;
+  const journalCount = visible.filter((r) => r.is_journal_article).length;
+  const journalPct = total > 0 ? ((journalCount / total) * 100).toFixed(1) : '0';
+  const csisCount = visible.filter((r) => r.is_csis).length;
+
   return (
     <>
       {/* Stats */}
       <section className="mb-6 rounded-xl border bg-gray-50 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
           <div className="flex flex-wrap gap-4">
-            <StatCard label="Total" value={stats.total} />
-            <StatCard label="Journal Articles" value={stats.journalCount} />
-            <StatCard label="Journal %" value={`${stats.journalPct}%`} />
-            <StatCard label="CSIS" value={stats.csisCount} />
+            <StatCard label="Total" value={total} />
+            <StatCard label="Journal Articles" value={journalCount} />
+            <StatCard label="Journal %" value={`${journalPct}%`} />
+            <StatCard label="CSIS" value={csisCount} />
           </div>
 
           {/* CSIS filter */}
