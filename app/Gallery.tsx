@@ -27,18 +27,41 @@ function imageUrl(imgKey: string) {
 
 export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) {
   const [activeType, setActiveType] = useState<string | null>(null);
+  const [csisFilter, setCsisFilter] = useState<boolean | null>(null);
 
-  const visible = activeType ? rows.filter((r) => r.document_type === activeType) : rows;
+  const visible = rows
+    .filter((r) => activeType === null || r.document_type === activeType)
+    .filter((r) => csisFilter === null || r.is_csis === csisFilter);
 
   return (
     <>
       {/* Stats */}
       <section className="mb-6 rounded-xl border bg-gray-50 p-5">
-        <div className="flex flex-wrap gap-4 mb-5">
-          <StatCard label="Total" value={stats.total} />
-          <StatCard label="Journal Articles" value={stats.journalCount} />
-          <StatCard label="Journal %" value={`${stats.journalPct}%`} />
-          <StatCard label="CSIS" value={stats.csisCount} />
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+          <div className="flex flex-wrap gap-4">
+            <StatCard label="Total" value={stats.total} />
+            <StatCard label="Journal Articles" value={stats.journalCount} />
+            <StatCard label="Journal %" value={`${stats.journalPct}%`} />
+            <StatCard label="CSIS" value={stats.csisCount} />
+          </div>
+
+          {/* CSIS filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700">CSIS</span>
+            {([null, true, false] as const).map((val) => (
+              <button
+                key={String(val)}
+                onClick={() => setCsisFilter(val)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                  csisFilter === val
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+              >
+                {val === null ? 'All' : val ? 'Yes' : 'No'}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
@@ -47,7 +70,7 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               activeType === null
                 ? 'bg-gray-900 text-white'
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                : 'bg-gray-700 text-white hover:bg-gray-900'
             }`}
           >
             All
@@ -59,7 +82,7 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 activeType === type
                   ? 'bg-gray-900 text-white'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  : 'bg-gray-700 text-white hover:bg-gray-900'
               }`}
             >
               {type} <span className="opacity-60">{count}</span>
@@ -78,6 +101,7 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
               href={`https://policycommons.net/artifacts/${row.artifact_id}/${row.slug}/${row.file_id}/`}
               target="_blank"
               rel="noopener noreferrer"
+              title={row.slug}
               className="block overflow-hidden rounded-lg border bg-gray-100 hover:opacity-90 transition-opacity"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,14 +115,13 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
               />
             </a>
             <div className="mt-2 space-y-1 px-0.5">
-              <p className="text-xs text-gray-700 leading-snug line-clamp-2">{row.slug}</p>
               <div className="flex flex-wrap items-center gap-1">
                 <button
                   onClick={() => setActiveType(activeType === row.document_type ? null : row.document_type)}
                   className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
                     activeType === row.document_type
                       ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      : 'bg-gray-700 text-white hover:bg-gray-900'
                   }`}
                 >
                   {row.document_type}
@@ -110,6 +133,9 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
                   <span className="text-xs text-gray-400" title="CSIS">CSIS</span>
                 )}
               </div>
+              {row.reason && (
+                <p className="text-xs text-gray-600 leading-snug line-clamp-2">{row.reason}</p>
+              )}
             </div>
           </div>
         ))}
