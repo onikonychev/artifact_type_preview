@@ -3,16 +3,22 @@
 import { useState } from 'react';
 import { type Row, imageUrl, artifactUrl } from '@/lib/parseCSV';
 
+type JournalFilter = 'all' | 'journal' | 'non-journal';
+
 interface Stats {
   sortedTypes: [string, number][];
 }
 
-export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) {
-  const [activeType, setActiveType] = useState<string | null>(null);
+export default function GallerySimple({ rows }: { rows: Row[]; stats: Stats }) {
+  const [journalFilter, setJournalFilter] = useState<JournalFilter>('all');
   const [csisFilter, setCsisFilter] = useState<boolean | null>(null);
 
   const visible = rows
-    .filter((r) => activeType === null || r.document_type === activeType)
+    .filter((r) => {
+      if (journalFilter === 'journal') return r.is_journal_article;
+      if (journalFilter === 'non-journal') return !r.is_journal_article;
+      return true;
+    })
     .filter((r) => csisFilter === null || r.is_csis === csisFilter);
 
   const csisRows = csisFilter === null ? rows : rows.filter((r) => r.is_csis === csisFilter);
@@ -20,13 +26,6 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
   const journalCount = csisRows.filter((r) => r.is_journal_article).length;
   const journalPct = total > 0 ? ((journalCount / total) * 100).toFixed(1) : '0';
   const csisCount = csisRows.filter((r) => r.is_csis).length;
-
-  const typeCounts = csisRows.reduce<Record<string, number>>((acc, r) => {
-    const t = r.document_type || 'unknown';
-    acc[t] = (acc[t] ?? 0) + 1;
-    return acc;
-  }, {});
-  const sortedTypes = stats.sortedTypes.map(([type]) => [type, typeCounts[type] ?? 0] as [string, number]);
 
   return (
     <>
@@ -59,36 +58,27 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={() => setActiveType(null)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              activeType === null
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            All
-          </button>
-          {sortedTypes.map(([type, count]) => {
-            const isJournal = type === 'journal article';
-            const isActive = activeType === type;
-            return (
-              <button
-                key={type}
-                onClick={() => setActiveType(isActive ? null : type)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  isActive
-                    ? 'bg-gray-900 text-white'
-                    : isJournal
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {type} <span className="opacity-60">{count}</span>
-              </button>
-            );
-          })}
+        {/* Journal article switcher */}
+        <div className="flex gap-1">
+          {([
+            { val: 'all', label: 'All', count: rows.length },
+            { val: 'journal', label: 'Journal Article', count: journalCount },
+            { val: 'non-journal', label: 'Non Journal Article', count: total - journalCount },
+          ] as const).map(({ val, label, count }) => (
+            <button
+              key={val}
+              onClick={() => setJournalFilter(val)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                journalFilter === val
+                  ? 'bg-gray-900 text-white'
+                  : val === 'journal'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {label} <span className="opacity-60">{count}</span>
+            </button>
+          ))}
         </div>
       </section>
 
@@ -117,26 +107,15 @@ export default function Gallery({ rows, stats }: { rows: Row[]; stats: Stats }) 
             </a>
             <div className="mt-2 space-y-1 px-0.5">
               <div className="flex flex-wrap items-center gap-1">
-                <button
-                  onClick={() => setActiveType(activeType === row.document_type ? null : row.document_type)}
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
-                    activeType === row.document_type
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {row.document_type}
-                </button>
                 {row.is_journal_article && (
-                  <span className="text-xs text-gray-400" title="Journal article">JA</span>
+                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
+                    Journal Article
+                  </span>
                 )}
                 {row.is_csis && (
-                  <span className="text-xs text-gray-400" title="CSIS">CSIS</span>
+                  <span className="text-xs text-gray-400">CSIS</span>
                 )}
               </div>
-              {row.reason && (
-                <p className="text-xs text-gray-600 leading-snug line-clamp-2">{row.reason}</p>
-              )}
             </div>
           </div>
         ))}
