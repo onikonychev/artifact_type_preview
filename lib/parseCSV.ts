@@ -42,6 +42,31 @@ export function parseCSV(text: string): Row[] {
     .filter((r) => r.file_id !== '');
 }
 
+export interface Row10k {
+  file_id: string;
+  artifact_id: string;
+  slug: string;
+  img_key: string;
+  is_journal_article: boolean;
+}
+
+export function parseCSV10k(text: string): Row10k[] {
+  const lines = text.trim().split('\n');
+  return lines
+    .slice(1)
+    .map((line) => {
+      const values = line.split(',');
+      return {
+        file_id: values[0]?.trim() ?? '',
+        artifact_id: values[1]?.trim() ?? '',
+        slug: values[2]?.trim() ?? '',
+        img_key: values[3]?.trim() ?? '',
+        is_journal_article: values[4]?.trim() === 'true',
+      };
+    })
+    .filter((r) => r.file_id !== '');
+}
+
 export function imageUrl(imgKey: string) {
   return `https://img.coherentcommons.com/400x600/${imgKey}`;
 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const tabs = [
+  { label: '10k', href: '/10k' },
   { label: 'GPT-5.5', href: '/' },
   { label: 'GPT-4o', href: '/gpt4o' },
 ];
